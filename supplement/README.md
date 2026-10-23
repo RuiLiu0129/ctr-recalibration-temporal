@@ -50,6 +50,18 @@ table and the v7 mechanism claim. Narrative analyses are in the repository at
 | `mechanism_cells.csv` | Mechanism control, seed 42: per model × gap × calibrator, ΔECE under three fitting conditions — (a) `full12`: the full 12 h slice; (b) `hour1`: the actual 1 h slice; (c) `sub`: K=5 uniform subsamples of the 12 h slice at exactly the 1 h slice's impression count — with `n_fit`, fit/apply times, and the subsample seed for each row (336 rows). | Concatenation of `mechanism_slice/mechanism_o1.csv` and `mechanism_slice/mechanism_o2.csv` | v7 mechanism claim: the size-matched 12 h subsample recovers 88% of the full 12 h benefit pooled over origins and calibrators (0.68–0.96 per origin × calibrator) while the true 1 h slice is on average harmful (ΔECE +0.0007) — temporal span, not sample size, is the driver |
 | `mechanism_o1_validation.json`, `mechanism_o2_validation.json` | Validation of the mechanism pipeline against the independent sweep runs (full-12 h ΔECE agrees to ~1e-16, 1 h at gaps 1–3 to ~1e-13), the elementwise 1 h ⊂ 12 h subset check, and the subsample seed registry. | Verbatim copies of `mechanism_slice/mechanism_o{1,2}_validation.json` | Internal validity of the mechanism experiment |
 
+## Run logs and environment
+
+Added 2026-10-23. The Table III training times were the one set of numbers in
+the paper whose provenance was not yet in this repository; the raw run logs
+are now included verbatim.
+
+| File | Contents | Paper claim(s) it supports |
+|---|---|---|
+| `logs/tierb_o1repro.log` | Raw log of the seed-42 origin-1 headline run (temporal arm). Per-model train times: line 6 `lr: trained in 10.5s`, line 11 `deepfm: trained in 205.7s`, line 16 `dcnv2: trained in 599.8s`; line 21 `train+eval done in 1290.6s`. | Table III origin-1 training column (10.5 / 205.7 / 599.8 s) and the 1,291 s arm total (the printed total is 1290.6 s rounded) |
+| `logs/tierb_o2.log` | Raw log of the seed-42 origin-2 headline run (temporal arm). Per-model train times: line 6 `lr: trained in 13.1s`, line 11 `deepfm: trained in 257.6s`, line 16 `dcnv2: trained in 703.0s`; line 21 `train+eval done in 1457.4s`. | Table III origin-2 training column (13.1 / 257.6 / 703.0 s) and the 1,457 s arm total (1457.4 s rounded) |
+| `ENVIRONMENT.md` | Exact library versions printed in the paper and the remaining environment pins, how they were obtained (read from the project venv that ran the experiments), the hardware line (2-vCPU VM, AMD EPYC 9D25 host), and the pointer to `requirements.txt` at the repository root, which pins them. | §IV-C software/hardware specification; the environment behind every timing in Table III |
+
 ## The sign-agreement rule, stated explicitly
 
 A cell **agrees** iff ΔECE and Δprofit have **opposite signs** (calibration improves →

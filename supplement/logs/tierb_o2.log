@@ -1,0 +1,23 @@
+train cap per arm: 4000000; processed dir: data/processed_o2; results dir: results/origin2
+dataset index: reusing cached data/processed_o2/dataset_index.json
+temporal: reusing prepared splits (fingerprint match)
+[temporal] prepare done in 0.0s
+[temporal] train rows: 3,948,439
+[temporal] lr: trained in 13.1s
+[temporal] lr gap0: AUC 0.7457 ECE 0.0097 (9.9s)
+[temporal] lr gap1: AUC 0.7517 ECE 0.0101 (17.4s)
+[temporal] lr gap2: AUC 0.7368 ECE 0.0072 (12.5s)
+[temporal] lr gap3: AUC 0.7277 ECE 0.0108 (12.5s)
+[temporal] deepfm: trained in 257.6s
+[temporal] deepfm gap0: AUC 0.7562 ECE 0.0040 (15.7s)
+[temporal] deepfm gap1: AUC 0.7578 ECE 0.0067 (32.8s)
+[temporal] deepfm gap2: AUC 0.7443 ECE 0.0116 (24.0s)
+[temporal] deepfm gap3: AUC 0.7381 ECE 0.0103 (27.7s)
+[temporal] dcnv2: trained in 703.0s
+[temporal] dcnv2 gap0: AUC 0.7558 ECE 0.0044 (57.7s)
+[temporal] dcnv2 gap1: AUC 0.7573 ECE 0.0064 (107.1s)
+[temporal] dcnv2 gap2: AUC 0.7440 ECE 0.0101 (82.1s)
+[temporal] dcnv2 gap3: AUC 0.7382 ECE 0.0081 (84.1s)
+[temporal] train+eval done in 1457.4s
+[temporal] wrote results/origin2/metrics_temporal.csv and results/origin2/bidding_temporal.csv
+done. Results in results/origin2/ (metrics.csv, bidding.csv, summary.md, metrics_<arm>.csv, bidding_<arm>.csv, reliability_*.csv, plots/)

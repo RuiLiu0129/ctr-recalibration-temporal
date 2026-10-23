@@ -1,0 +1,23 @@
+train cap per arm: 4000000; processed dir: data/processed_o1repro; results dir: results/o1_repro
+dataset index: reusing cached data/processed_o1repro/dataset_index.json
+temporal: reusing prepared splits (fingerprint match)
+[temporal] prepare done in 0.0s
+[temporal] train rows: 3,338,217
+[temporal] lr: trained in 10.5s
+[temporal] lr gap0: AUC 0.7320 ECE 0.0092 (9.7s)
+[temporal] lr gap1: AUC 0.7384 ECE 0.0118 (10.1s)
+[temporal] lr gap2: AUC 0.7497 ECE 0.0084 (15.8s)
+[temporal] lr gap3: AUC 0.7352 ECE 0.0054 (12.3s)
+[temporal] deepfm: trained in 205.7s
+[temporal] deepfm gap0: AUC 0.7431 ECE 0.0069 (18.9s)
+[temporal] deepfm gap1: AUC 0.7521 ECE 0.0092 (20.1s)
+[temporal] deepfm gap2: AUC 0.7569 ECE 0.0078 (30.3s)
+[temporal] deepfm gap3: AUC 0.7418 ECE 0.0061 (23.8s)
+[temporal] dcnv2: trained in 599.8s
+[temporal] dcnv2 gap0: AUC 0.7408 ECE 0.0070 (74.3s)
+[temporal] dcnv2 gap1: AUC 0.7476 ECE 0.0098 (66.8s)
+[temporal] dcnv2 gap2: AUC 0.7522 ECE 0.0037 (106.9s)
+[temporal] dcnv2 gap3: AUC 0.7392 ECE 0.0058 (85.1s)
+[temporal] train+eval done in 1290.6s
+[temporal] wrote results/o1_repro/metrics_temporal.csv and results/o1_repro/bidding_temporal.csv
+done. Results in results/o1_repro/ (metrics.csv, bidding.csv, summary.md, metrics_<arm>.csv, bidding_<arm>.csv, reliability_*.csv, plots/)
