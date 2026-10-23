@@ -1,0 +1,83 @@
+# Experiment configuration: Calibration under temporal splits (Avazu)
+# All paths are relative to the project root (the directory containing this file).
+
+seed: 42
+
+data:
+  # The raw CSV is streamed in chunks by src/data_pipeline.py; it is never
+  # loaded as a whole. Encoded splits (.npy) are written to processed_dir.
+  raw_path: data/raw/train.csv
+  processed_dir: data/processed
+  chunk_rows: 500000       # CSV streaming chunk (rows) for both prepare scans.
+  train_cap_rows: 4000000  # Per-arm training-row cap (null = no cap).
+                           # temporal: deterministic stride sample of the
+                           #   train window (test buckets stay full-size);
+                           # random: reservoir pool sized so train ~= cap
+                           #   (val/test are the 10%/20% shares of the pool).
+
+features:
+  # Categorical encoding: per-field frequency-capped vocabulary, fit on each
+  # arm's capped training rows only.
+  # Values rarer than min_count or beyond max_vocab_per_field map to UNK (index 0).
+  max_vocab_per_field: 20000
+  min_count: 10
+
+split:
+  train_days: 5                    # temporal arm: train on day_idx 0..4
+  test_gaps_days: [0, 1, 2, 3]     # test bucket = the single day at train_days + gap
+  calib_hours: 6                   # recalibration slice length (hours).
+                                   # gap 0: first calib_hours of the bucket day (test = rest of that day).
+                                   # gap >= 1: last calib_hours of the day before the bucket.
+  random:                          # replication arm
+    train_frac: 0.70
+    val_frac: 0.10                 # val doubles as the recalibration slice; rest is test
+
+train:
+  device: auto                     # auto | cpu | cuda
+  torch_threads: 2                 # this VM has 2 CPUs
+
+models:
+  lr:
+    # Plan-A solver: sklearn SGDClassifier(loss="log_loss") via partial_fit
+    # over streamed batches (see src/models.py for why lbfgs was replaced).
+    # alpha is derived as 1 / (C * n_train); epochs/batch_size drive the loop.
+    # Schedule: 'adaptive' with eta0=0.01 -- the 'optimal' heuristic
+    # mis-scales at alpha = 1/(C*n_train) and collapses the predicted
+    # probabilities toward 0 (measured: ECE 0.170 ~ the base CTR, vs 0.010
+    # for this setting at 500k train rows; AUC 0.724, logloss 0.423).
+    solver: sgd
+    C: 1.0
+    epochs: 3
+    batch_size: 16384
+    learning_rate: adaptive
+    eta0: 0.01
+    average: true
+  deepfm:
+    emb_dim: 16
+    mlp: [128, 64]
+    dropout: 0.2
+    epochs: 3
+    batch_size: 2048
+    lr: 0.001
+    weight_decay: 0.00001
+  dcnv2:
+    emb_dim: 16
+    mlp: [128, 64]
+    cross_layers: 3
+    dropout: 0.2
+    epochs: 3
+    batch_size: 2048
+    lr: 0.001
+    weight_decay: 0.00001
+
+calibration:
+  ece_bins: 15
+  methods: [platt, isotonic]       # recalibrators fitted per test bucket
+
+bidding:
+  value_per_click: 1.0             # currency units earned per realized click
+  bid_shading: 1.0                 # bid = bid_shading * p * value_per_click
+  market_mu: -2.2                  # competing (market) bid ~ LogNormal(mu, sigma):
+  market_sigma: 0.9                # median ~0.11, mean ~0.17 in the same units
+
+results_dir: results

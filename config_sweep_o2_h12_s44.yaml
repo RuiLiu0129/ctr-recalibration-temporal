@@ -1,0 +1,65 @@
+seed: 44
+data:
+  raw_path: data/raw/train.csv
+  processed_dir: data/processed
+  chunk_rows: 500000
+  train_cap_rows: 4000000
+features:
+  max_vocab_per_field: 20000
+  min_count: 10
+split:
+  train_days: 5
+  test_gaps_days:
+  - 0
+  - 1
+  - 2
+  - 3
+  calib_hours: 12
+  random:
+    train_frac: 0.7
+    val_frac: 0.1
+  train_start_day: 1
+train:
+  device: auto
+  torch_threads: 2
+models:
+  lr:
+    solver: sgd
+    C: 1.0
+    epochs: 3
+    batch_size: 16384
+    learning_rate: adaptive
+    eta0: 0.01
+    average: true
+  deepfm:
+    emb_dim: 16
+    mlp:
+    - 128
+    - 64
+    dropout: 0.2
+    epochs: 3
+    batch_size: 2048
+    lr: 0.001
+    weight_decay: 1.0e-05
+  dcnv2:
+    emb_dim: 16
+    mlp:
+    - 128
+    - 64
+    cross_layers: 3
+    dropout: 0.2
+    epochs: 3
+    batch_size: 2048
+    lr: 0.001
+    weight_decay: 1.0e-05
+calibration:
+  ece_bins: 15
+  methods:
+  - platt
+  - isotonic
+bidding:
+  value_per_click: 1.0
+  bid_shading: 1.0
+  market_mu: -2.2
+  market_sigma: 0.9
+results_dir: results/sweep_seeds/seed44/hours_12/origin2
