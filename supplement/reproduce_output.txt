@@ -47,6 +47,7 @@ seed origin
 [OK] dECE bootstrap intervals excluding zero (of 48): recomputed 43 | paper 43
 [OK] profit intervals excluding zero (of 48): recomputed 24 | paper 24
 [OK] profit delta range (%): recomputed (np.float64(-0.21), np.float64(0.26)) | paper (-0.21, 0.26)
+[OK] profit delta range, three decimals (%): recomputed (np.float64(-0.207), np.float64(0.263)) | paper (-0.207, 0.263)
 [OK] sign agreement dECE vs dProfit (of 48): recomputed 40 | paper 40
 [OK] Pearson r pooled: recomputed -0.69 | paper -0.69
 [OK] Pearson r origin 1: recomputed -0.77 | paper -0.77
@@ -54,5 +55,22 @@ seed origin
 [OK] binned oracle below raw (point / significant): recomputed (24, 23) | paper (24, 23)
 [OK] isotonic oracle median gain per 1,000: recomputed 0.147 | paper 0.147
 [OK] label oracle multiple range: recomputed (np.float64(1.75), np.float64(1.97)) | paper (1.75, 1.97)
+[OK] control recovery pooled over three seeds (gaps +1..+3): recomputed 0.88 | paper 0.88
+[OK] control recovery per seed, range: recomputed (np.float64(0.87), np.float64(0.88)) | paper (0.87, 0.88)
+[OK] control recovery per seed x origin x calibrator, range: recomputed (np.float64(0.72), np.float64(1.0)) | paper (0.72, 1.0)
+[OK] control harms per seed, sub (of 36): recomputed (4, 7, 4) | paper (4, 7, 4)
+[OK] control harms per seed, full12 (of 36): recomputed (4, 5, 3) | paper (4, 5, 3)
+[OK] control harms per seed, hour1 (of 36): recomputed (15, 15, 18) | paper (15, 15, 18)
+[OK] aged windows 0/6/12/18 h: mean dECE: recomputed (np.float64(-0.0003), np.float64(-0.0018), np.float64(0.0004), np.float64(0.0004)) | paper (-0.0003, -0.0018, 0.0004, 0.0004)
+[OK] aged windows 0/6/12/18 h: harms (of 36): recomputed (13, 8, 19, 15) | paper (13, 8, 19, 15)
+[OK] full 24 h slice in the same runs: mean dECE, harms: recomputed (np.float64(-0.0019), 9) | paper (-0.0019, 9)
+[OK] window hours: age0 / age6 / age12 / age18: recomputed ('18-23', '12-17', '6-11', '0-5') | paper ('18-23', '12-17', '6-11', '0-5')
+[OK] afternoon 6 h window / 12 h slice gain (about three-quarters): recomputed 0.74 | paper 0.75
+[OK] the two windows covering hours 00-11 are net-harmful: recomputed True | paper True
+[OK] 12 h fit timing difference between runs, Platt / isotonic (%): recomputed (23, 52) | paper (23, 52)
+[OK] training rows origin 1 / origin 2 (logs): recomputed (3338217, 3948439) | paper (3338217, 3948439)
+[OK] random arm: training rows / test rows (from the split rule): recomputed (4000000, 1142858) | paper (4000000, 1142858)
+[OK] random arm trains on X% more rows than origin 1 / origin 2: recomputed (20, 1) | paper (20, 1)
+[OK] aged windows: median size afternoon (12-17) / evening (18-23), M: recomputed (np.float64(1.22), np.float64(0.74)) | paper (1.22, 0.74)
 
 0 mismatch(es)

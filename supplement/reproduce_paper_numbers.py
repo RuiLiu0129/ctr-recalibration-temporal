@@ -121,6 +121,7 @@ mm = rec_.assign(variant=rec_.comparison.str.replace("-raw", "", regex=False)).m
     db[["origin", "model", "gap", "variant", "delta_ece"]], on=["origin", "model", "gap", "variant"])
 mm["pct"] = mm.delta_profit / mm.profit_raw * 100
 check("profit delta range (%)", (round(mm.pct.min(), 2), round(mm.pct.max(), 2)), (-0.21, 0.26))
+check("profit delta range, three decimals (%)", (round(mm.pct.min(), 3), round(mm.pct.max(), 3)), (-0.207, 0.263))
 check("sign agreement dECE vs dProfit (of 48)", int((mm.delta_ece * mm.pct < 0).sum()), 40)
 for lab, sub, want in (("pooled", mm, -0.69), ("origin 1", mm[mm.origin == 1], -0.770), ("origin 2", mm[mm.origin == 2], -0.783)):
     nd = 2 if lab == "pooled" else 3
@@ -131,6 +132,56 @@ iso = pd.read_csv("rq4_isotonic_oracle.csv")
 check("isotonic oracle median gain per 1,000", round(iso.delta_per_1000.median(), 3), 0.147)
 lab = (orc.profit_label_oracle / orc.profit_raw)
 check("label oracle multiple range", (round(lab.min(), 2), round(lab.max(), 2)), (1.75, 1.97))
+
+
+# ------------------------------------------------- Tier-E: control at seeds 43/44
+parts = [M.drop(columns=["cond"]).assign(seed=42)]
+for sd in (43, 44):
+    for o in (1, 2):
+        parts.append(pd.read_csv(f"tiere/mechanism_seeds/seed{sd}/mechanism_o{o}.csv"))
+MS = pd.concat(parts, ignore_index=True)
+MS["cond"] = MS.condition.where(~MS.condition.str.startswith("sub"), "sub")
+cs = MS[MS.gap >= 1].groupby(["seed", "origin", "model", "gap", "calibrator", "cond"]).delta_ece.mean().unstack()
+def recov(x):
+    mu = x.mean(); return (mu["sub"] - mu["hour1"]) / (mu["full12"] - mu["hour1"])
+check("control recovery pooled over three seeds (gaps +1..+3)", round(recov(cs), 2), 0.88)
+ps = [recov(cs.xs(sd, level="seed")) for sd in (42, 43, 44)]
+check("control recovery per seed, range", (round(min(ps), 2), round(max(ps), 2)), (0.87, 0.88))
+gso = cs.groupby(level=["seed", "origin", "calibrator"]).apply(recov)
+check("control recovery per seed x origin x calibrator, range", (round(gso.min(), 2), round(gso.max(), 2)), (0.72, 1.00))
+for c, want in (("sub", (4, 7, 4)), ("full12", (4, 5, 3)), ("hour1", (15, 15, 18))):
+    check(f"control harms per seed, {c} (of 36)", tuple(int((cs.xs(sd, level="seed")[c] > 0).sum()) for sd in (42, 43, 44)), want)
+
+# ------------------------------------------------- Tier-E: aged-window control (seed 42)
+R = pd.concat([pd.read_csv(f"tiere/recency/recency_o{o}.csv") for o in (1, 2)])
+R["harm"] = R.delta_ece > 0
+agg = R.groupby("condition").agg(mean=("delta_ece", "mean"), harm=("harm", "sum"))
+check("aged windows 0/6/12/18 h: mean dECE", tuple(round(agg.loc[f"age{a}", "mean"], 4) for a in (0, 6, 12, 18)), (-0.0003, -0.0018, 0.0004, 0.0004))
+check("aged windows 0/6/12/18 h: harms (of 36)", tuple(int(agg.loc[f"age{a}", "harm"]) for a in (0, 6, 12, 18)), (13, 8, 19, 15))
+check("full 24 h slice in the same runs: mean dECE, harms", (round(agg.loc["full24", "mean"], 4), int(agg.loc["full24", "harm"])), (-0.0019, 9))
+hod = R.groupby("condition").window_hod.first()
+check("window hours: age0 / age6 / age12 / age18", tuple(hod[f"age{a}"] for a in (0, 6, 12, 18)), ("18-23", "12-17", "6-11", "0-5"))
+g12 = F[(F.seed == 42) & (F.calib_hours == 12)].delta_ece.mean()
+check("afternoon 6 h window / 12 h slice gain (about three-quarters)", round(agg.loc["age6", "mean"] / g12, 2), 0.75, tol=0.05)
+check("the two windows covering hours 00-11 are net-harmful", bool((agg.loc[["age12", "age18"], "mean"] > 0).all()), True)
+
+# ------------------------------------------------- timing variation between runs (12 h fit)
+var = (round((med[12, "platt"] / ft["full12", "platt"] - 1) * 100), round((med[12, "isotonic"] / ft["full12", "isotonic"] - 1) * 100))
+check("12 h fit timing difference between runs, Platt / isotonic (%)", var, (23, 52))
+
+
+# ------------------------------------------------- training sizes (Sec. III-B, IV-A, threat 4)
+import re, math
+def rows(log):
+    return int(re.search(r"train rows: ([\d,]+)", open(log).read()).group(1).replace(",", ""))
+o1, o2 = rows("logs/tierb_o1repro.log"), rows("logs/tierb_o2.log")
+cap, tf, vf = 4_000_000, 0.7, 0.1
+pool = math.ceil(cap / tf); rnd = int(pool * tf); rtest = pool - rnd - int(pool * vf)
+check("training rows origin 1 / origin 2 (logs)", (o1, o2), (3338217, 3948439))
+check("random arm: training rows / test rows (from the split rule)", (rnd, rtest), (4000000, 1142858))
+check("random arm trains on X% more rows than origin 1 / origin 2", (round((rnd / o1 - 1) * 100), round((rnd / o2 - 1) * 100)), (20, 1))
+wsize = R.drop_duplicates(["origin", "gap", "condition"]).groupby("condition").n_fit.median()
+check("aged windows: median size afternoon (12-17) / evening (18-23), M", (round(wsize["age6"] / 1e6, 2), round(wsize["age0"] / 1e6, 2)), (1.22, 0.74))
 
 print(f"\n{bad} mismatch(es)")
 sys.exit(bad)
