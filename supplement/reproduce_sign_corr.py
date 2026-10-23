@@ -5,7 +5,7 @@ from the unrounded CSVs in this supplement.
 Definitions (exactly as used for the paper's numbers):
   * dECE    = calibrated ECE - raw ECE (delta_ece_bootstrap.csv, full precision).
   * dProfit = recalibrated profit - raw profit, expressed as a PERCENTAGE of raw
-              profit, i.e. the quantity printed in Table V of the paper
+              profit, i.e. the quantity printed in Table VI of the paper
               (rq4_bootstrap.csv delta_profit / rq4_binned_oracle.csv profit_raw * 100).
   * AGREEMENT: a cell agrees iff sign(dECE) and sign(dProfit) are OPPOSITE
     (calibration improves, dECE < 0, while profit rises, dProfit > 0; or
@@ -13,11 +13,10 @@ Definitions (exactly as used for the paper's numbers):
   * Zero handling: a delta of exactly 0.0 has no sign and would be counted as
     NON-agreement. In the unrounded data NO delta_ece and NO profit delta is
     exactly zero (asserted below), so this rule never binds; it matters only
-    for the rounded PDF tables, where two deltas print as +0.00%.
+    for the rounded PDF tables; the paper prints the three smallest profit deltas to three decimals.
 
-Expected output (paper, rounded): 40 of 48 agreements;
-  r = -0.69 pooled, -0.77 at origin 1, -0.78 at origin 2
-  (unrounded: -0.6866, -0.7695, -0.7830).
+Expected output: 40 of 48 agreements; r = -0.6866 pooled, -0.7695 at origin 1,
+  -0.7830 at origin 2 (the paper prints -0.69, -0.770, -0.783).
 
 Run:  python3 reproduce_sign_corr.py   (requires pandas, scipy; reads only
 files in this directory)

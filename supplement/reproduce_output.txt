@@ -1,0 +1,58 @@
+[OK] harmful applications, seed 42, 6 h (of 48): recomputed 16 | paper 16
+[OK] largest relative ECE reduction (%): recomputed 61 | paper 61
+[OK] largest relative ECE increase (%): recomputed 107 | paper 107
+[OK] max |calibrated AUC - raw AUC|: recomputed 0.0002 | paper 0.0002
+[OK] log-loss delta range: recomputed (np.float64(-0.0009), np.float64(0.0006)) | paper (-0.0009, 0.0006)
+[OK] ECE and log loss move in opposite directions (of 48): recomputed 9 | paper 9
+[OK] harmful applications per seed (42/43/44): recomputed (16, 14, 17) | paper (16, 14, 17)
+[OK] sign-flip rule correct (of 48): recomputed 40 | paper 40
+[OK] overshoot rule correct (of 48): recomputed 42 | paper 42
+[OK] overshoot rule: flagged applications all harmed: recomputed (10, 10) | paper (10, 10)
+
+Harms per seed x origin (fixed cells, of 18):
+calib_hours  1   3   6   12  24
+seed origin                    
+42   1        7  10   8   3   6
+     2        8   6   5   1   3
+43   1        6   4   3   1   5
+     2        9  12  11   4   6
+44   1        5   6   4   1   6
+     2       13  14  13   2   5
+[OK] Table V harms/seed at 1 h: recomputed (15, 15, 18) | paper (15, 15, 18)
+[OK] Table V harms/seed at 3 h: recomputed (16, 16, 20) | paper (16, 16, 20)
+[OK] Table V harms/seed at 6 h: recomputed (13, 14, 17) | paper (13, 14, 17)
+[OK] Table V harms/seed at 12 h: recomputed (4, 5, 3) | paper (4, 5, 3)
+[OK] Table V harms/seed at 24 h: recomputed (9, 11, 11) | paper (9, 11, 11)
+[OK] Table V LR harms/seed at 6 h: recomputed (8, 8, 8) | paper (8, 8, 8)
+[OK] Table V LR harms/seed at 12 h: recomputed (2, 1, 1) | paper (2, 1, 1)
+[OK] 12 h has the fewest harms in every seed x origin: recomputed True | paper True
+[OK] seed x origin combinations where 12 h also has the lowest mean dECE: recomputed 5 | paper 5
+[OK] Table V mean dECE x1e-4, origin 1 isotonic: recomputed [-5, -13, -11, -38, -31] | paper [-5, -13, -11, -38, -31]
+[OK] Table V mean dECE x1e-4, origin 1 platt: recomputed [-4, -2, -7, -17, -11] | paper [-4, -2, -7, -17, -11]
+[OK] Table V mean dECE x1e-4, origin 2 isotonic: recomputed [18, 7, 2, -30, -30] | paper [18, 7, 2, -30, -30]
+[OK] Table V mean dECE x1e-4, origin 2 platt: recomputed [0, 6, 3, -14, -9] | paper [0, 6, 3, -14, -9]
+[OK] control mean dECE full12 / hour1 / sub (gaps +1..+3): recomputed (np.float64(-0.0024), np.float64(-0.0001), np.float64(-0.0021)) | paper (-0.0024, -0.0001, -0.0021)
+[OK] control recovery (gaps +1..+3): recomputed 0.87 | paper 0.87
+[OK] control recovery incl. gap 0: recomputed 0.88 | paper 0.88
+[OK] control recovery range across origin x calibrator: recomputed (np.float64(0.8), np.float64(0.99)) | paper (0.8, 0.99)
+[OK] control harms full12 / hour1 / sub (of 36): recomputed (4, 15, 4) | paper (4, 15, 4)
+[OK] control same-run fit speed-up Platt / isotonic: recomputed (20, 25) | paper (20, 25)
+[OK] control fit medians full12 Platt / iso (s): recomputed (np.float64(1.14), np.float64(0.58)) | paper (1.14, 0.58)
+[OK] control fit medians sub Platt / iso (s): recomputed (np.float64(0.057), np.float64(0.023)) | paper (0.057, 0.023)
+[OK] Table III fit medians at 1 h Platt / iso (s): recomputed (np.float64(0.085), np.float64(0.032)) | paper (0.085, 0.032)
+[OK] Table III fit medians at 3 h Platt / iso (s): recomputed (np.float64(0.26), np.float64(0.11)) | paper (0.26, 0.11)
+[OK] Table III fit medians at 12 h Platt / iso (s): recomputed (np.float64(1.41), np.float64(0.87)) | paper (1.41, 0.87)
+[OK] Table III fit medians at 24 h Platt / iso (s): recomputed (np.float64(2.8), np.float64(2.11)) | paper (2.8, 2.11)
+[OK] apply-time medians within 0.2-0.5 s: recomputed True | paper True
+[OK] dECE bootstrap intervals excluding zero (of 48): recomputed 43 | paper 43
+[OK] profit intervals excluding zero (of 48): recomputed 24 | paper 24
+[OK] profit delta range (%): recomputed (np.float64(-0.21), np.float64(0.26)) | paper (-0.21, 0.26)
+[OK] sign agreement dECE vs dProfit (of 48): recomputed 40 | paper 40
+[OK] Pearson r pooled: recomputed -0.69 | paper -0.69
+[OK] Pearson r origin 1: recomputed -0.77 | paper -0.77
+[OK] Pearson r origin 2: recomputed -0.783 | paper -0.783
+[OK] binned oracle below raw (point / significant): recomputed (24, 23) | paper (24, 23)
+[OK] isotonic oracle median gain per 1,000: recomputed 0.147 | paper 0.147
+[OK] label oracle multiple range: recomputed (np.float64(1.75), np.float64(1.97)) | paper (1.75, 1.97)
+
+0 mismatch(es)
