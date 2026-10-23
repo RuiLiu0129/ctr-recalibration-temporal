@@ -38,9 +38,14 @@ a time.
   supports. `supplement/reproduce_sign_corr.py` reproduces the paper's
   sign-agreement count (40 of 48) and the ΔECE–Δprofit correlations
   (pooled −0.69; origin 1 −0.77; origin 2 −0.78) from the supplement CSVs.
+  The Tier-D tables (three-seed slice-length sweep, mechanism control) are
+  listed in the Tier-D section of `supplement/README.md`.
 - `requirements.txt` — the pinned environment (see below).
-- `docs/PROJECT_README.md` — the original project README (design and
-  protocol details).
+- `docs/` — the original project README (`PROJECT_README.md`, design and
+  protocol details) plus the Tier-D analysis write-ups:
+  `sweep_seeds_analysis.md` (slice-length sweep at seeds 43/44) and
+  `mechanism_analysis.md` (slice size vs. diurnal coverage, with measured
+  refit costs).
 
 ## Dataset
 

@@ -1,4 +1,4 @@
-# Audit supplement — "Short-Slice Recalibration Can Hurt" (BigData workshop submission, v5)
+# Audit supplement — "How Much Fresh Data Should CTR Recalibration Use?" (BigData workshop submission, v7)
 
 Cell-level, **unrounded** data behind the paper's tables and headline statistics, so that
 any number in the PDF can be recomputed exactly. All files are consolidated from the
@@ -32,6 +32,23 @@ window. Seed is 42 unless a file says otherwise.
 | `sweep_seed42_delta_ece.csv` | Slice-length sweep, seed 42: ΔECE per cell for slice lengths 1/3/6/12/24 h, both origins, with slice sizes (`n_calib`). Note: at 24 h the gap-0 bucket has no impressions left to evaluate, so that grid has 36 cells, not 48. | Verbatim copy of `tierc/sweep_delta_ece.csv` | Table IV / §IV-D dose–response |
 | `sweep_harm_counts.csv` | Harm counts per slice length, split into the **fixed evaluation set** (gaps +1…+3, identical cells at every length: 36 cells) vs **all cells**. | Derived from `sweep_seed42_delta_ece.csv` | "13/36 → 4/36 on fixed evaluation sets" (6 h → 12 h). The all-cells counts are 16/48 → 7/48 and must not be substituted for the fixed-set numbers |
 | `reproduce_sign_corr.py` | Script: reads `delta_ece_bootstrap.csv`, `rq4_bootstrap.csv`, `rq4_binned_oracle.csv` from this directory and prints the sign-agreement count and the three Pearson correlations. | This supplement | §IV-E: "the sign of the profit delta tracks the sign of the ECE change in 40 of 48 cells"; r = −0.69 pooled, −0.77 / −0.78 per origin |
+
+## Tier-D additions (v7)
+
+Added 2026-10-23. Unlike the files above, these report **new experiment runs**
+(Tier-D, 2026-10-22/23): the slice-length sweep replicated at seeds 43 and 44,
+and the mechanism control experiment (seed 42). Together with
+`sweep_seed42_delta_ece.csv` (seed 42) they underlie the v7 three-seed sweep
+table and the v7 mechanism claim. Narrative analyses are in the repository at
+`docs/sweep_seeds_analysis.md` and `docs/mechanism_analysis.md`.
+
+| File | Contents | Source in project | Paper claim(s) it supports |
+|---|---|---|---|
+| `sweep_seeds_cells.csv` | Slice-length sweep at seeds 43/44: per-cell metrics (raw/Platt/isotonic AUC, log loss, ECE, signed bias, `n_test`, `n_calib`) for `calib_hours` 1/3/12/24 at both origins, with `seed`, `calib_hours`, `origin` prepended (540 rows). At 24 h the gap-0 bucket does not exist by construction, so those grids have 27 rows per origin instead of 36. The 6 h points are the Tier-B/C seed runs (see the seed files above). | Consolidated from `sweep_seeds/seed{43,44}/hours_{1,3,12,24}/origin{1,2}/metrics_temporal.csv` | v7 Table IV / §IV-D three-seed sweep: the 12 h harm minimum replicates in all 6 seed × origin combinations |
+| `sweep_seeds_slice_stats.csv` | Fitting-slice statistics (slice size, observed CTR, mean prediction, signed bias, AUC, log loss, ECE) for the same sweep runs (180 rows). | Consolidated from `sweep_seeds/seed{43,44}/hours_{h}/origin{o}/slice_stats_temporal.csv` | Slice-size axis of the v7 sweep table |
+| `sweep_seeds_timings.csv` | Measured per-cell calibrator fit/apply wall-clock times (seconds) for the same sweep runs (360 rows). | Consolidated from `sweep_seeds/seed{43,44}/hours_{h}/origin{o}/timings_temporal.csv` | v7 measured refit costs by slice length (with the timings in `mechanism_cells.csv`) |
+| `mechanism_cells.csv` | Mechanism control, seed 42: per model × gap × calibrator, ΔECE under three fitting conditions — (a) `full12`: the full 12 h slice; (b) `hour1`: the actual 1 h slice; (c) `sub`: K=5 uniform subsamples of the 12 h slice at exactly the 1 h slice's impression count — with `n_fit`, fit/apply times, and the subsample seed for each row (336 rows). | Concatenation of `mechanism_slice/mechanism_o1.csv` and `mechanism_slice/mechanism_o2.csv` | v7 mechanism claim: the size-matched 12 h subsample recovers 88% of the full 12 h benefit pooled over origins and calibrators (0.68–0.96 per origin × calibrator) while the true 1 h slice is on average harmful (ΔECE +0.0007) — temporal span, not sample size, is the driver |
+| `mechanism_o1_validation.json`, `mechanism_o2_validation.json` | Validation of the mechanism pipeline against the independent sweep runs (full-12 h ΔECE agrees to ~1e-16, 1 h at gaps 1–3 to ~1e-13), the elementwise 1 h ⊂ 12 h subset check, and the subsample seed registry. | Verbatim copies of `mechanism_slice/mechanism_o{1,2}_validation.json` | Internal validity of the mechanism experiment |
 
 ## The sign-agreement rule, stated explicitly
 
