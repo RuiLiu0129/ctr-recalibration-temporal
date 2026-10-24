@@ -183,6 +183,62 @@ check("random arm trains on X% more rows than origin 1 / origin 2", (round((rnd 
 wsize = R.drop_duplicates(["origin", "gap", "condition"]).groupby("condition").n_fit.median()
 check("aged windows: median size afternoon (12-17) / evening (18-23), M", (round(wsize["age6"] / 1e6, 2), round(wsize["age0"] / 1e6, 2)), (1.22, 0.74))
 
+# ------------------------------- stride rule (Sec. III-B): window sizes and k
+gd = g.drop_duplicates(["origin", "model", "gap"]).drop_duplicates(["origin", "gap"]).set_index(["origin", "gap"])
+day_sz = {5: int(gd.loc[(1, 0)].n_test + gd.loc[(1, 0)].n_calib)}   # gap-0 day = eval hours 6-23 + 6 h slice
+for gp in (1, 2, 3): day_sz[5 + gp] = int(gd.loc[(1, gp)].n_test)
+day_sz[9] = int(gd.loc[(2, 3)].n_test)
+w1 = 40_428_967 - sum(day_sz.values())                                # days 0-4 = all minus days 5-9
+k1 = math.ceil(w1 / cap)
+check("origin-1 training window rows (all days minus days 5-9), M", round(w1 / 1e6, 2), 20.03)
+check("origin-1 stride k and resulting rows", (k1, math.ceil(w1 / k1)), (6, 3338217))
+w2_lo, w2_hi = 5 * (o2 - 1) + 1, 5 * o2                                 # windows giving ceil(W/5) = o2
+check("origin-2 rows consistent with k = 5 and a 19.74M window", bool(w2_lo <= 19_742_194 <= w2_hi and math.ceil(19_742_194 / cap) == 5), True)
+
+# ------------------------------------- v22 additions: RQ1/RQ2 text, gates, RQ4
+gd1 = g.drop_duplicates(["origin", "model", "gap"]).set_index(["origin", "model", "gap"])
+ra42 = pd.read_csv("seed_random_arm.csv").query("variant == 'raw' and seed == 42").set_index("model")
+mods3 = ("lr", "deepfm", "dcnv2")
+dA = {(o, m, k): ra42.auc[m] - gd1.raw_auc[(o, m, k)] for o in (1, 2) for m in mods3 for k in range(4)}
+rE = {(o, m, k): ra42.ece[m] / gd1.raw_ece[(o, m, k)] for o in (1, 2) for m in mods3 for k in range(4)}
+check("RQ1: origin-1 AUC advantage range over four days", (round(min(v for k, v in dA.items() if k[0] == 1), 4), round(max(v for k, v in dA.items() if k[0] == 1), 4)), (-0.0042, 0.0157))
+check("RQ1: origin-2 gap-0 AUC differences", tuple(round(dA[(2, m, 0)], 4) for m in mods3), (-0.0002, 0.0008, -0.0009))
+check("RQ1: origin-2 gap-0 ECE ratios (%)", tuple(round(rE[(2, m, 0)] * 100) for m in mods3), (52, 96, 117))
+check("RQ1: origin-2 gaps +2/+3 AUC advantage range", (round(min(dA[(2, m, k)] for m in mods3 for k in (2, 3)), 4), round(max(dA[(2, m, k)] for m in mods3 for k in (2, 3)), 4)), (0.0087, 0.0189))
+check("RQ1: temporal cells with lower random-split ECE, seed 42 (of 24)", sum(v < 1 for v in rE.values()), 22)
+e1 = pd.read_csv("seed_o1_ece.csv").query("variant == 'raw'").set_index(["model", "gap"])
+check("RQ2: LR origin-1 seed-mean raw ECE by gap", tuple(round(e1.loc[("lr", k), "mean"], 4) for k in range(4)), (0.0091, 0.0116, 0.0082, 0.0057))
+check("RQ2: origin-1 seed-mean raw ECE averaged over models", tuple(round(e1["mean"].xs(k, level="gap").mean(), 4) for k in range(4)), (0.0083, 0.0096, 0.0071, 0.0073))
+check("RQ2: max seed sd LR / deep at origin 1", (round(e1.loc["lr", "sd"].max(), 4), round(e1["sd"].max(), 4)), (0.0003, 0.0031))
+Sx = S[(S.variant == "raw") & (S.origin == 2) & (S.bucket != "gap0")].drop_duplicates(["seed", "model", "bucket"]).copy(); Sx["gap"] = Sx.bucket.str[-1].astype(int)
+z2 = pd.concat([Sx[["seed", "model", "gap", "ece"]], gd1.loc[2].reset_index().query("gap > 0").rename(columns={"raw_ece": "ece"}).assign(seed=42)[["seed", "model", "gap", "ece"]]])
+m2 = z2.groupby(["model", "gap"]).ece.mean()
+check("RQ2: LR origin-2 seed-mean raw ECE, gaps +1..+3", tuple(round(m2[("lr", k)], 4) for k in (1, 2, 3)), (0.0099, 0.0073, 0.0107))
+check("RQ2: LR cross-origin ratios on Oct 28 / Oct 29", (round(m2[("lr", 1)] / e1.loc[("lr", 2), "mean"], 2), round(m2[("lr", 2)] / e1.loc[("lr", 3), "mean"], 2)), (1.20, 1.27))
+check("RQ2: deep seed-42 max cross-origin ratio (Oct 29, DeepFM)", round(gd1.raw_ece[(2, "deepfm", 2)] / gd1.raw_ece[(1, "deepfm", 3)], 1), 1.9)
+sg = pd.read_csv("slice_bias_gates.csv"); sg = sg[sg.origin.isin(["1", "2"])].copy(); sg["origin"] = sg.origin.astype(int)
+sgi = sg.set_index(["statistic", "origin"])
+check("gate: slice-ECE tau and origin-1 gated / always-iso / never", (round(sgi.loc[("slice_ece", 1), "tau_fit_origin1"], 4), round(sgi.loc[("slice_ece", 1), "mean_gated"], 4), round(sgi.loc[("slice_ece", 1), "mean_always"], 4), round(sgi.loc[("slice_ece", 1), "mean_never"], 4)), (0.0061, 0.0063, 0.0064, 0.0076))
+check("gate: origin-2 gated / always-iso / never", (round(sgi.loc[("slice_ece", 2), "mean_gated"], 4), round(sgi.loc[("slice_ece", 2), "mean_always"], 4), round(sgi.loc[("slice_ece", 2), "mean_never"], 4)), (0.0082, 0.0081, 0.0083))
+check("gate: harm accuracy origin 1 / origin 2", (sgi.loc[("slice_ece", 1), "harm_acc"], sgi.loc[("slice_ece", 2), "harm_acc"]), (0.75, 0.5))
+plat = g[g.calibrator == "platt"].groupby("origin").cal_ece.mean(); isom = g[g.calibrator == "isotonic"].groupby("origin").cal_ece.mean()
+check("always-Platt mean ECE origin 1 / origin 2", (round(plat[1], 4), round(plat[2], 4)), (0.0074, 0.0075))
+pos, emb = "pos_slice_bias (fire iff bias > tau)", "slice_ece_minus_abs_bias"
+check("bias gates: positive-bias / ECE-minus-|bias| at origins 1, 2", tuple(round(sgi.loc[(s_, o), "mean_gated"], 4) for s_ in (pos, emb) for o in (1, 2)), (0.0061, 0.0079, 0.0060, 0.0078))
+beat = [s_ for s_ in sgi.index.get_level_values(0).unique() if s_ != "slice_ece" and all(sgi.loc[(s_, o), "mean_gated"] < sgi.loc[(s_, o), "mean_always"] for o in (1, 2))]
+check("bias gates beating always-isotonic at both origins", len(beat), 2)
+check("bias gates' margin over always-isotonic (range)", (round(min(sgi.loc[(s_, o), "mean_always"] - sgi.loc[(s_, o), "mean_gated"] for s_ in beat for o in (1, 2)), 4), round(max(sgi.loc[(s_, o), "mean_always"] - sgi.loc[(s_, o), "mean_gated"] for s_ in beat for o in (1, 2)), 4)), (0.0002, 0.0004))
+check("at origin 2 no bias gate beats always-Platt", bool((sg[sg.origin == 2].mean_gated > plat[2]).all()), True)
+co_ = pd.read_csv("slice_target_corr.csv").set_index("set").pearson
+check("slice-vs-target ECE correlation: origin 1 / origin 2 / pooled / o1 seeds 43-44", tuple(round(co_[k], 3) for k in co_.index[:4]), (0.342, 0.379, 0.388, 0.456))
+rs = pd.read_csv("rule_scores_summary.csv").set_index("scope")
+check("harm rules frozen from origin 1: raw-ECE / gap==3 at origins 1, 2", (round(rs.iloc[0, 1], 3), round(rs.iloc[1, 1], 3), round(rs.iloc[0, 2], 3), round(rs.iloc[1, 2], 3)), (0.917, 0.667, 0.917, 0.583))
+check("weekday-absent rule, pooled", round(rs.loc["pooled"].iloc[3], 3), 0.333)
+bo = pd.read_csv("rq4_binned_oracle.csv")
+check("binned oracle median per 1,000 impressions", round((bo.calib_oracle_minus_raw / bo.n * 1000).median(), 2), -0.37)
+io = pd.read_csv("rq4_isotonic_oracle.csv")
+check("isotonic oracle gain range per 1,000", (round(io.delta_per_1000.min(), 3), round(io.delta_per_1000.max(), 3)), (0.049, 0.409))
+
 # ---------------------------------------- Tier F (v18+): RQ1 controls, price sweep
 M = pd.read_csv("tierf/matched_sampling_cells.csv")
 check("matched-sampling: paired cells", len(M), 72)

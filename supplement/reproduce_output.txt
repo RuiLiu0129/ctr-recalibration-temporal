@@ -72,6 +72,33 @@ seed origin
 [OK] random arm: training rows / test rows (from the split rule): recomputed (4000000, 1142858) | paper (4000000, 1142858)
 [OK] random arm trains on X% more rows than origin 1 / origin 2: recomputed (20, 1) | paper (20, 1)
 [OK] aged windows: median size afternoon (12-17) / evening (18-23), M: recomputed (np.float64(1.22), np.float64(0.74)) | paper (1.22, 0.74)
+[OK] origin-1 training window rows (all days minus days 5-9), M: recomputed 20.03 | paper 20.03
+[OK] origin-1 stride k and resulting rows: recomputed (6, 3338217) | paper (6, 3338217)
+[OK] origin-2 rows consistent with k = 5 and a 19.74M window: recomputed True | paper True
+[OK] RQ1: origin-1 AUC advantage range over four days: recomputed (np.float64(-0.0042), np.float64(0.0157)) | paper (-0.0042, 0.0157)
+[OK] RQ1: origin-2 gap-0 AUC differences: recomputed (np.float64(-0.0002), np.float64(0.0008), np.float64(-0.0009)) | paper (-0.0002, 0.0008, -0.0009)
+[OK] RQ1: origin-2 gap-0 ECE ratios (%): recomputed (52, 96, 117) | paper (52, 96, 117)
+[OK] RQ1: origin-2 gaps +2/+3 AUC advantage range: recomputed (np.float64(0.0087), np.float64(0.0189)) | paper (0.0087, 0.0189)
+[OK] RQ1: temporal cells with lower random-split ECE, seed 42 (of 24): recomputed 22 | paper 22
+[OK] RQ2: LR origin-1 seed-mean raw ECE by gap: recomputed (np.float64(0.0091), np.float64(0.0116), np.float64(0.0082), np.float64(0.0057)) | paper (0.0091, 0.0116, 0.0082, 0.0057)
+[OK] RQ2: origin-1 seed-mean raw ECE averaged over models: recomputed (np.float64(0.0083), np.float64(0.0096), np.float64(0.0071), np.float64(0.0073)) | paper (0.0083, 0.0096, 0.0071, 0.0073)
+[OK] RQ2: max seed sd LR / deep at origin 1: recomputed (np.float64(0.0003), np.float64(0.0031)) | paper (0.0003, 0.0031)
+[OK] RQ2: LR origin-2 seed-mean raw ECE, gaps +1..+3: recomputed (np.float64(0.0099), np.float64(0.0073), np.float64(0.0107)) | paper (0.0099, 0.0073, 0.0107)
+[OK] RQ2: LR cross-origin ratios on Oct 28 / Oct 29: recomputed (np.float64(1.2), np.float64(1.27)) | paper (1.2, 1.27)
+[OK] RQ2: deep seed-42 max cross-origin ratio (Oct 29, DeepFM): recomputed 1.9 | paper 1.9
+[OK] gate: slice-ECE tau and origin-1 gated / always-iso / never: recomputed (np.float64(0.0061), np.float64(0.0063), np.float64(0.0064), np.float64(0.0076)) | paper (0.0061, 0.0063, 0.0064, 0.0076)
+[OK] gate: origin-2 gated / always-iso / never: recomputed (np.float64(0.0082), np.float64(0.0081), np.float64(0.0083)) | paper (0.0082, 0.0081, 0.0083)
+[OK] gate: harm accuracy origin 1 / origin 2: recomputed (np.float64(0.75), np.float64(0.5)) | paper (0.75, 0.5)
+[OK] always-Platt mean ECE origin 1 / origin 2: recomputed (np.float64(0.0074), np.float64(0.0075)) | paper (0.0074, 0.0075)
+[OK] bias gates: positive-bias / ECE-minus-|bias| at origins 1, 2: recomputed (np.float64(0.0061), np.float64(0.0079), np.float64(0.006), np.float64(0.0078)) | paper (0.0061, 0.0079, 0.006, 0.0078)
+[OK] bias gates beating always-isotonic at both origins: recomputed 2 | paper 2
+[OK] bias gates' margin over always-isotonic (range): recomputed (np.float64(0.0002), np.float64(0.0004)) | paper (0.0002, 0.0004)
+[OK] at origin 2 no bias gate beats always-Platt: recomputed True | paper True
+[OK] slice-vs-target ECE correlation: origin 1 / origin 2 / pooled / o1 seeds 43-44: recomputed (np.float64(0.342), np.float64(0.379), np.float64(0.388), np.float64(0.456)) | paper (0.342, 0.379, 0.388, 0.456)
+[OK] harm rules frozen from origin 1: raw-ECE / gap==3 at origins 1, 2: recomputed (np.float64(0.917), np.float64(0.667), np.float64(0.917), np.float64(0.583)) | paper (0.917, 0.667, 0.917, 0.583)
+[OK] weekday-absent rule, pooled: recomputed 0.333 | paper 0.333
+[OK] binned oracle median per 1,000 impressions: recomputed -0.37 | paper -0.37
+[OK] isotonic oracle gain range per 1,000: recomputed (np.float64(0.049), np.float64(0.409)) | paper (0.049, 0.409)
 [OK] matched-sampling: paired cells: recomputed 72 | paper 72
 [OK] matched-sampling: training rows = temporal arm (o1, o2): recomputed (3338217, 3948439) | paper (3338217, 3948439)
 [OK] matched-sampling: temporal reference AUC equals seed-42 grid (o1): recomputed True | paper True
