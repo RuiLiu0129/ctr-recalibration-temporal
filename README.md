@@ -39,6 +39,10 @@ a time.
     of the random arm at origin 1's training size (3,338,217 rows).
   - `tierf_bidsweep.py` — the 3×3 price-distribution sweep of the bidding
     simulation.
+  - `run_tiere.sh`, `mech_slice_seeds.py`, `recency_slice.py`,
+    `analyze_tiere.py` — the Tier-E controls: the mechanism control
+    (slice size vs. diurnal coverage) rerun at seeds 43/44, the recency
+    (aged-window) control, and their combined analysis.
 - `results/` — analysis write-ups and per-cell outputs of the three
   controls above (`results/tierf/`, `results/sizematch/`,
   `results/bidsweep/`); the copies the paper's claims are checked against
@@ -112,7 +116,7 @@ python -m src.run_experiments --config config_sweep_o1_h12.yaml
 Runs are resumable: arms whose per-arm CSVs already exist in the results
 directory are skipped and merged from disk (`--resume`). The analysis
 scripts and chains are driven by `run_tierb.sh`, `run_tierc.sh`,
-`run_tierd.sh`, `run_tierf.sh`, and `run_sizematch.sh`. Headline numbers can be checked directly against
+`run_tierd.sh`, `run_tiere.sh`, `run_tierf.sh`, and `run_sizematch.sh`. Headline numbers can be checked directly against
 `supplement/` without re-running anything.
 
 ## Protocol in brief
