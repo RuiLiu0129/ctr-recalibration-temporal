@@ -72,5 +72,36 @@ seed origin
 [OK] random arm: training rows / test rows (from the split rule): recomputed (4000000, 1142858) | paper (4000000, 1142858)
 [OK] random arm trains on X% more rows than origin 1 / origin 2: recomputed (20, 1) | paper (20, 1)
 [OK] aged windows: median size afternoon (12-17) / evening (18-23), M: recomputed (np.float64(1.22), np.float64(0.74)) | paper (1.22, 0.74)
+[OK] Tier-F control: paired cells (2 origins x 3 seeds x 3 models x 4 gaps): recomputed 72 | paper 72
+[OK] Tier-F control: training rows per origin (exact size match): recomputed (3338217, 3948439) | paper (3338217, 3948439)
+[OK] Tier-F control: pooled mean dAUC (draw - temporal): recomputed 0.00015 | paper 0.00015
+[OK] Tier-F control: gap-0 mean dAUC: recomputed 0.00012 | paper 0.00012
+[OK] Tier-F control: pooled mean dECE (draw - temporal): recomputed 0.00053 | paper 0.00053
+[OK] Tier-F control: cells where the draw has lower ECE (of 72): recomputed 35 | paper 35
+[OK] bid sweep: overall profit-delta range across the 9 (mu, sigma) cells (%): recomputed (np.float64(-0.357), np.float64(0.343)) | paper (-0.357, 0.343)
+[OK] bid sweep: per-cell mean profit-delta range (%): recomputed (np.float64(0.019), np.float64(0.04)) | paper (0.019, 0.04)
+[OK] bid sweep: centre cell (mu=-2.2, sigma=0.9) profit-delta range (%): recomputed (np.float64(-0.207), np.float64(0.263)) | paper (-0.207, 0.263)
+[OK] size-matched cells (3 seeds x 3 models x 3 variants): recomputed 27 | paper 27
+[OK] size-matched retraining: cap / train / test rows (first cell): recomputed (3338217, 3338217, 953777) | paper (3338217, 3338217, 953777)
+[OK] size-matched retraining: sizes identical across all 27 cells: recomputed (1, 1, 1) | paper (1, 1, 1)
+[OK] size-matched cells vs contrasts: raw AUC agreement (max |diff|): recomputed 0.0 | paper 0.0
+[OK] contrasts: d_auc = new_random_auc - ref_auc in every seed row (max |dev|): recomputed 9.8879238130678e-17 | paper 0.0
+[OK] contrasts: printed mean rows agree with the seed rows (max |dev|): recomputed 9.996344030316351e-17 | paper 0.0
+[OK] size-matched gap-0 AUC contrast, seed means (LR / DeepFM / DCN-v2): recomputed (np.float64(0.014), np.float64(0.015), np.float64(0.0154)) | paper (0.014, 0.015, 0.0154)
+[OK] threat (4): matched-size contrast range across models (seed means): recomputed (np.float64(0.014), np.float64(0.0154)) | paper (0.014, 0.0154)
+[OK] capped (4.00M) gap-0 AUC contrast, seed means (LR / DeepFM / DCN-v2): recomputed (np.float64(0.0137), np.float64(0.0151), np.float64(0.0152)) | paper (0.0137, 0.0151, 0.0152)
+[OK] pure size effect on the random arm's AUC, seed means (LR / DeepFM / DCN-v2): recomputed (np.float64(0.0002), np.float64(-0.0001), np.float64(0.0002)) | paper (0.0002, -0.0001, 0.0002)
+[OK] LR ECE ratio at matched size, per seed (42 / 43 / 44): recomputed (0.608, 0.639, 0.613) | paper (0.608, 0.639, 0.613)
+[OK] LR ECE ratio at matched size: range as printed (0.61-0.64): recomputed (np.float64(0.61), np.float64(0.64)) | paper (0.61, 0.64)
+[OK] Tier-F control: origin-1 gap-0 cells (3 seeds x 3 models): recomputed 9 | paper 9
+[OK] Tier-F control: origin-1 gap-0 mean dAUC, full precision: recomputed 0.000149 | paper 0.000149
+[OK] Tier-F control: origin-1 gap-0 mean dAUC as printed: recomputed 0.00015 | paper 0.00015
+[OK] Tier-F control: pooled mean dAUC, full precision: recomputed 0.000155 | paper 0.000155
+[OK] Tier-F control: pooled gap-0 mean dAUC, full precision: recomputed 0.000117 | paper 0.000117
+[OK] LR ECE ratio at the cap (4.00M arm), per seed (42 / 43 / 44): recomputed (0.5519, 0.5864, 0.6185) | paper (0.5519, 0.5864, 0.6185)
+[OK] LR ECE ratio at the cap as printed per seed: recomputed (0.55, 0.59, 0.62) | paper (0.55, 0.59, 0.62)
+[OK] LR ECE ratio at the cap: range as printed in v19 (0.55-0.62): recomputed (0.55, 0.62) | paper (0.55, 0.62)
+[OK] pure size effect, unrounded seed means (LR / DeepFM / DCN-v2): recomputed (np.float64(0.000227), np.float64(-0.000118), np.float64(0.000196)) | paper (0.000227, -0.000118, 0.000196)
+[OK] rounded-input subtraction would give LR +0.0003 (hence 'from unrounded values'): recomputed 0.0003 | paper 0.0003
 
 0 mismatch(es)

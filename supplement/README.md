@@ -1,4 +1,4 @@
-# Audit supplement — "How Much Fresh Data Should CTR Recalibration Use?" (BigData workshop submission, v15)
+# Audit supplement — "How Much Fresh Data Should CTR Recalibration Use?" (BigData workshop submission, v19)
 
 Cell-level, **unrounded** data behind the paper's tables and headline statistics, so that
 any number in the PDF can be recomputed exactly. All files are consolidated from the
@@ -51,9 +51,9 @@ table (Table V) and the size-matched control. Narrative analyses are in the repo
 | `mechanism_o1_validation.json`, `mechanism_o2_validation.json` | Validation of the mechanism pipeline against the independent sweep runs (full-12 h ΔECE agrees to ~1e-16, 1 h at gaps 1–3 to ~1e-13), the elementwise 1 h ⊂ 12 h subset check, and the subsample seed registry. | Verbatim copies of `mechanism_slice/mechanism_o{1,2}_validation.json` | Internal validity of the mechanism experiment |
 
 
-## One-command reproduction (v15)
+## One-command reproduction (v19)
 
-`python3 reproduce_paper_numbers.py` (pandas, scipy) recomputes 64 quantitative claims of the paper, including the Tier-E controls (size-matched control at three seeds, aged-window control, and the hour-composition statements of §IV-D), from the files above, prints each next to the value printed in the paper, and exits with the number of mismatches (0 for v15). It also writes two derived tables the paper summarises:
+`python3 reproduce_paper_numbers.py` (pandas, scipy) recomputes 95 quantitative claims of the paper, including the Tier-E controls (size-matched control at three seeds, aged-window control, and the hour-composition statements of §IV-D), the Tier-F controls (same-target-day training control and the bidding-parameter sweep), the v18 size-matched random-arm retraining (RQ1 / threat (4)), and the v19 caliber and provenance pins (§IV-A: the three Tier-F gap-0 calibers at full precision, LR's ECE ratio at both training sizes, and the unrounded size-effect means), from the files above, prints each next to the value printed in the paper, and exits with the number of mismatches (0 for v19). It also writes two derived tables the paper summarises:
 
 | File | Contents |
 |---|---|
@@ -98,3 +98,58 @@ Added 2026-10-23. Two follow-up controls reported in the v10 text:
 | `tiere/mechanism_seeds/seed43/mechanism_o{1,2}.csv`, `tiere/mechanism_seeds/seed44/mechanism_o{1,2}.csv` | Size-matched control replicated at seeds 43/44: per-cell ΔECE for the full 12 h slice, the true 1 h slice, and K=5 size-matched subsamples (seed 42 cells are in `mechanism_cells.csv`). | §IV-C / abstract: three-seed pooled recovery 88% (0.8745 / 0.8791 / 0.8794 by seed; 0.72–1.00 across seed×origin×calibrator); subsample harms 4/7/4 of 36 vs full-slice 4/5/3 and true-1h 15/15/18 |
 | `tiere/recency/recency_o{1,2}.csv` | Aged-window (recency) control, seed 42: per-cell ΔECE for 6 h windows aged 0/6/12/18 h plus the full-24 h reference, gaps +1..+3, both origins. | §IV-D / threats (5): age means −0.0003 / −0.0018 / +0.0004 / +0.0004 (harms 13/8/19/15 of 36), full-24 h −0.0019 (9/36); not monotone in age |
 | `tiere/mechanism_seeds_analysis.md`, `tiere/recency_analysis.md` | Full Tier-E analyses, with per-origin × calibrator tables and validation summaries. | Same as above |
+| `tierf/tierf_cells.csv` | Same-target-day control (Tier F): all 72 paired cells (2 origins x 3 seeds x 3 models x 4 gaps) with the draw-arm and temporal-arm AUC/log loss/ECE (unrounded), `n_train`, `n_test`, and deltas `d_auc`, `d_ece`, `d_ll`; consolidated from `tierf/audit_out/cells_with_deltas.csv`. | §IV-A same-target-day paragraph; threats (4) and (8): pooled dAUC +0.00015 (gap 0 +0.00012), pooled dECE +0.00053, draw lower on ECE in 35 of 72 cells; `n_train` exactly 3,338,217 / 3,948,439 per origin |
+| `tierf/bidsweep_cells.csv`, `tierf/bidsweep_summary.md` | Bidding-parameter sweep (Tier F, Experiment A): the 48 RQ4 profit deltas recomputed from saved predictions in each of 9 (mu, sigma) cells (432 rows), with per-cell min/max/mean/positive counts. | Threat (7): overall range -0.357% to +0.343%, per-cell means +0.019% to +0.040%; centre cell (mu=-2.2, sigma=0.9) reproduces the paper's -0.207% to +0.263% |
+| `tierf/tierf_analysis.md` | Full Tier-F audit and analysis: independent recomputation from saved predictions (max |dAUC| 0.0, |dECE| 9.5e-17), integrity and restart forensics, breakdowns by gap/origin/model, and the control's stated limits. | Same as above |
+
+## Size-matched retraining additions (v18)
+
+Added 2026-10-24. One new experiment run (2026-10-24), added so that every
+number v18 prints about the size-matched control is reachable from this
+supplement: the RQ1 random arm retrained at origin 1's exact training size
+(3,338,217 rows, the temporal arm's size) for all three models and all
+three seeds, under the unchanged random-split protocol (whole-file
+reservoir pool of ⌈cap/0.7⌉ = 4,768,882 rows, seeded 70/10/20 split,
+encoder refit per seed) with only the training cap changed. This closes
+threat (4)'s training-size confound by measurement: the Tier-F control
+above held size fixed, so it could not test whether the random arm's 20%
+larger origin-1 training set drives the origin-1 gap-0 contrast. The full
+analysis, the run's gates report, and the chain script are in the public
+repository (`results/sizematch/sizematch_analysis.md`,
+`results/sizematch/gates_report.json`, `run_sizematch.sh`); the run's
+per-impression predictions are archived with the project (42 `.npy`
+files, `results/sizematch/preds/`) and are not part of this supplement.
+
+| File | Contents | Source in project | Paper claim(s) it supports |
+|---|---|---|---|
+| `sizematch/sizematch_cells.csv` | Per-cell metrics of the retrained random arm: 27 rows (3 seeds × 3 models × raw/Platt/isotonic variants) with `cap` and `n_train` = 3,338,217 in every row, `n_test` = 953,777, AUC / log loss / ECE / signed bias (unrounded), and the per-seed vocabulary size. | Verbatim copy of `results/sizematch/sizematch_cells.csv` | §IV-A size-matched retraining paragraph; threat (4) |
+| `sizematch/sizematch_contrasts.csv` | The two pre-specified contrasts per model × seed with seed-mean rows: (a) `a_sizefree_split` — retrained random arm minus the same seed's origin-1 temporal gap-0 (references `metrics_temporal.csv` of the seed), with ΔAUC / Δ log loss / ΔECE and the ECE ratio; (b) `b_pure_size` — retrained arm minus the same seed's 4,000,000-row random arm (references `metrics_random.csv` / `random_seeds/`). The capped-arm contrast quoted in the paper is (a) − (b). | Verbatim copy of `results/sizematch/sizematch_contrasts.csv` | §IV-A: gap-0 AUC contrast at matched size +0.0140 / +0.0150 / +0.0154 (LR / DeepFM / DCN-v2, seed means) against +0.0137 / +0.0151 / +0.0152 under the 4.00M cap; pure size effect +0.0002 / −0.0001 / +0.0002; LR ECE ratio 0.608 / 0.639 / 0.613 per seed (0.61–0.64 in every seed). Threat (4): contrast +0.0140 to +0.0154 across models (seed means) at 3,338,217 rows |
+
+## v19 changes (delta from the v18 supplement)
+
+The paper text changed by four wording/precision edits, no numbers: (1) §IV-A
+now gives LR's gap-0 ECE ratio at both training sizes — "is 0.61–0.64
+(0.55–0.62 at the cap)" — replacing "remains 0.61–0.64", since the ratio rises
+slightly when training size is equalised; (2) the pure size effects are
+declared "equal-size minus capped, from unrounded values", because the rounded
+printed contrasts would give LR +0.0003 instead of +0.0002; (3) the
+residual-difference sentence in §IV-A and threat (8) no longer singles out
+same-day overlap as the only unseparated difference — it now names the protocol
+itself (training and test rows drawn from the same days, and a test set
+covering all ten days rather than one future day), matching threat (8)'s own
+list of test-set differences; (4) the §II release inventory now also names the
+matched-sampling control and the price sweep (both long packaged here, under
+`tierf/`).
+
+No data file changed. `reproduce_paper_numbers.py` gains 10 checks (95 total,
+0 mismatches) pinning what the tightened text asserts: the Tier-F draw's three
+gap-0 calibers at full precision (origin-1 gap-0 mean ΔAUC +0.000149 over its
+9 cells → printed +0.00015; pooled-72 +0.000155 → +0.00015; pooled gap-0
++0.000117 → +0.00012); LR's ECE ratio at the 4.00M cap per seed
+(0.5519 / 0.5864 / 0.6185 → printed 0.55 / 0.59 / 0.62, range 0.55–0.62),
+computed from `seed_random_arm.csv` over `seed_o1_ece.csv`; and the unrounded
+pure-size-effect means (+0.000227 / −0.000118 / +0.000196), with an explicit
+check that rounded-input subtraction gives LR +0.0003. The Tier-F per-cell
+audit table the new checks read was already packaged as `tierf/tierf_cells.csv`
+(byte-identical to the project's `results/tierf/audit_out/cells_with_deltas.csv`,
+md5 943445f20645cc1c4ef576bf38f2ab5c), so no Tier-F data file was added.
