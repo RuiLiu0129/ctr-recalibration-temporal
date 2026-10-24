@@ -31,6 +31,18 @@ a time.
     experiment (slice size vs. diurnal coverage) and multi-seed sweep
     staging/analysis.
   - `cost_probe/time_costs.py` — per-cycle recalibration timing probe.
+  - `run_tierf.sh`, `tierf_prep.py`, `tierf_same_day.py` — the
+    matched-sampling control (base models retrained on a uniform draw from
+    the temporal training window at the temporal arm's exact size, scored
+    raw on the same target days).
+  - `run_sizematch.sh`, `sizematch_collate.py` — the equal-size retraining
+    of the random arm at origin 1's training size (3,338,217 rows).
+  - `tierf_bidsweep.py` — the 3×3 price-distribution sweep of the bidding
+    simulation.
+- `results/` — analysis write-ups and per-cell outputs of the three
+  controls above (`results/tierf/`, `results/sizematch/`,
+  `results/bidsweep/`); the copies the paper's claims are checked against
+  are in `supplement/tierf/`.
 - `supplement/` — the audit supplement: unrounded per-cell metrics for all
   seeds, slice and target signed biases, gate inputs and decisions, the
   slice-length sweep table, bootstrap intervals, and both test-day oracle
@@ -39,7 +51,9 @@ a time.
   sign-agreement count (40 of 48) and the ΔECE–Δprofit correlations
   (pooled −0.69; origin 1 −0.77; origin 2 −0.78) from the supplement CSVs.
   The Tier-D tables (three-seed slice-length sweep, mechanism control) are
-  listed in the Tier-D section of `supplement/README.md`.
+  listed in the Tier-D section of `supplement/README.md`. `supplement/reproduce_paper_numbers.py`
+  recomputes every quantitative claim checked by the audit (87 checks)
+  from these files.
 - `requirements.txt` — the pinned environment (see below).
 - `docs/` — the original project README (`PROJECT_README.md`, design and
   protocol details) plus the Tier-D analysis write-ups:
@@ -97,16 +111,17 @@ python -m src.run_experiments --config config_sweep_o1_h12.yaml
 
 Runs are resumable: arms whose per-arm CSVs already exist in the results
 directory are skipped and merged from disk (`--resume`). The analysis
-scripts and chains are driven by `run_tierb.sh`, `run_tierc.sh`, and
-`run_tierd.sh`. Headline numbers can be checked directly against
+scripts and chains are driven by `run_tierb.sh`, `run_tierc.sh`,
+`run_tierd.sh`, `run_tierf.sh`, and `run_sizematch.sh`. Headline numbers can be checked directly against
 `supplement/` without re-running anything.
 
 ## Protocol in brief
 
 - Two rolling temporal origins on Avazu: origin 1 trains on days 0–4 and is
   evaluated on days 5–8 (gaps 0 to +3); origin 2 shifts the window by one
-  day. A size-matched random-split arm serves as the conventional-protocol
-  reference. Three training seeds (42, 43, 44) per arm.
+  day. A random-split arm under the same 4M-row training cap serves as the
+  conventional-protocol reference (it is also retrained at origin 1's
+  exact training size as a control). Three training seeds (42, 43, 44) per arm.
 - For each test day, Platt scaling and isotonic regression are fitted on
   the hours immediately preceding that day (base protocol: 6 hours; the
   sweep varies this from 1 to 24 hours) and applied leak-free.

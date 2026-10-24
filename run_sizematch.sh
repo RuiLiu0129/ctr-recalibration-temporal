@@ -5,7 +5,7 @@
 # path -- the ONLY change vs the existing 4M random runs is the cap
 # (passed via --train-cap) plus output locations and --save-predictions.
 #
-# Same conventions as run_taobao.sh / run_tierf.sh: each step logs to
+# Same conventions as run_tierf.sh: each step logs to
 # sizematch_<name>.log, drops a sizematch_<name>.done marker with the
 # exit code, and is SKIPPED on rerun when its marker already reads 0 --
 # after a VM/runtime restart, simply relaunching this script resumes

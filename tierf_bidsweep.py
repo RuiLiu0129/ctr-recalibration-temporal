@@ -1,7 +1,6 @@
 """Tier-F Experiment A (2026-10-23): RQ4 bidding-simulation parameter sweep.
 
-Question (external Strong-Accept roadmap, cheap identification experiment
-2): the paper's RQ4 profit deltas (recalibrated vs raw, -0.207%..+0.263%)
+Question: the paper's RQ4 profit deltas (recalibrated vs raw, -0.207%..+0.263%)
 were measured at ONE point of the simulated market -- lognormal
 mu=-2.2, sigma=0.9, value/click 1.0. Is the near-zero profit effect an
 artifact of that parameter point?
