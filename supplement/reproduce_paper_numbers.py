@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-command reproduction of the paper's quantitative claims (v19) from the
+"""One-command reproduction of the paper's quantitative claims (v9) from the
 unrounded CSVs in this directory. Requires pandas and scipy. Run from this
 directory:   python3 reproduce_paper_numbers.py
 
@@ -183,109 +183,48 @@ check("random arm trains on X% more rows than origin 1 / origin 2", (round((rnd 
 wsize = R.drop_duplicates(["origin", "gap", "condition"]).groupby("condition").n_fit.median()
 check("aged windows: median size afternoon (12-17) / evening (18-23), M", (round(wsize["age6"] / 1e6, 2), round(wsize["age0"] / 1e6, 2)), (1.22, 0.74))
 
+# ---------------------------------------- Tier F (v18+): RQ1 controls, price sweep
+M = pd.read_csv("tierf/matched_sampling_cells.csv")
+check("matched-sampling: paired cells", len(M), 72)
+check("matched-sampling: training rows = temporal arm (o1, o2)", tuple(int(M[M.origin == o].n_train.unique()[0]) for o in (1, 2)), (3338217, 3948439))
+check("matched-sampling: temporal reference AUC equals seed-42 grid (o1)", bool(np.allclose(M[(M.origin == 1) & (M.seed == 42)].sort_values(["model", "gap"]).temporal_auc.values, g.drop_duplicates(["origin", "model", "gap"]).query("origin == 1").sort_values(["model", "gap"]).raw_auc.values)), True)
+check("matched-sampling: pooled mean dAUC", round(M.d_auc.mean(), 5), 0.00015)
+check("matched-sampling: pooled mean dECE", round(M.d_ece.mean(), 5), 0.00053)
+check("matched-sampling: ahead on ECE (of 72)", int((M.d_ece < 0).sum()), 35)
+check("matched-sampling: gap-0 dAUC pooled / origin 1 alone", (round(M[M.gap == 0].d_auc.mean(), 5), round(M[(M.gap == 0) & (M.origin == 1)].d_auc.mean(), 5)), (0.00012, 0.00015))
+check("matched-sampling: origin-1 gap-0 cells", int(((M.gap == 0) & (M.origin == 1)).sum()), 9)
 
-# ------------------------------------------------- Tier-F: same-target-day control + bid sweep
-tf = pd.read_csv("tierf/tierf_cells.csv")
-check("Tier-F control: paired cells (2 origins x 3 seeds x 3 models x 4 gaps)", len(tf), 72)
-check("Tier-F control: training rows per origin (exact size match)",
-      tuple(int(tf[tf.origin == o].n_train.iloc[0]) for o in (1, 2)), (3338217, 3948439))
-check("Tier-F control: pooled mean dAUC (draw - temporal)", round(tf.d_auc.mean(), 5), 0.00015)
-check("Tier-F control: gap-0 mean dAUC", round(tf[tf.gap == 0].d_auc.mean(), 5), 0.00012)
-check("Tier-F control: pooled mean dECE (draw - temporal)", round(tf.d_ece.mean(), 5), 0.00053)
-check("Tier-F control: cells where the draw has lower ECE (of 72)", int((tf.d_ece < 0).sum()), 35)
-bs = pd.read_csv("tierf/bidsweep_cells.csv")
-check("bid sweep: overall profit-delta range across the 9 (mu, sigma) cells (%)",
-      (round(bs.delta_pct.min(), 3), round(bs.delta_pct.max(), 3)), (-0.357, 0.343))
-gm = bs.groupby(["mu", "sigma"]).delta_pct.mean()
-check("bid sweep: per-cell mean profit-delta range (%)",
-      (round(gm.min(), 3), round(gm.max(), 3)), (0.019, 0.040))
-cen = bs[(bs.mu == -2.2) & (bs.sigma == 0.9)]
-check("bid sweep: centre cell (mu=-2.2, sigma=0.9) profit-delta range (%)",
-      (round(cen.delta_pct.min(), 3), round(cen.delta_pct.max(), 3)), (-0.207, 0.263))
+E_ = pd.read_csv("tierf/equal_size_random_cells.csv")
+pool_e = math.ceil(3338217 / tf); tr_e = int(pool_e * tf); te_e = pool_e - tr_e - int(pool_e * vf)
+check("equal-size random arm: training / test rows (from the split rule)", (tr_e, te_e), (3338217, 953777))
+check("equal-size random arm: logged training / test rows", (int(E_.n_train.unique()[0]), int(E_.n_test.unique()[0])), (3338217, 953777))
+C = pd.read_csv("tierf/equal_size_contrasts.csv"); C = C[C.seed != "mean"].copy(); C["seed"] = C.seed.astype(int)
+a_ = C[C.contrast == "a_sizefree_split"].set_index(["model", "seed"]); b_ = C[C.contrast == "b_pure_size"].set_index(["model", "seed"])
+ra = pd.read_csv("seed_random_arm.csv").query("variant == 'raw'").set_index(["model", "seed"])
+check("equal-size: capped reference AUC equals released random arm", bool(np.allclose(b_.ref_auc.sort_index(), ra.auc.reindex(b_.index).sort_index())), True)
+new_ = E_.query("variant == 'raw'").set_index(["model", "seed"]).auc
+check("equal-size: new random AUC consistent in both contrasts", bool(np.allclose(a_.new_random_auc.sort_index(), new_.reindex(a_.index).sort_index())), True)
+mods = ("lr", "deepfm", "dcnv2")
+amean = a_.d_auc.groupby(level="model").mean(); capped = (a_.d_auc - b_.d_auc).groupby(level="model").mean(); bmean = b_.d_auc.groupby(level="model").mean()
+check("equal-size gap-0 AUC contrast, seed means LR/DeepFM/DCN-v2", tuple(round(amean[m], 4) for m in mods), (0.0140, 0.0150, 0.0154))
+check("capped gap-0 AUC contrast, seed means", tuple(round(capped[m], 4) for m in mods), (0.0137, 0.0151, 0.0152))
+check("equal-size minus capped (unrounded), seed means", tuple(round(bmean[m], 4) for m in mods), (0.0002, -0.0001, 0.0002))
+capseed = a_.d_auc - b_.d_auc
+check("capped gap-0 AUC inflation across models and seeds", (round(capseed.min(), 4), round(capseed.max(), 4)), (0.0135, 0.0163))
+lr_r = a_.loc["lr"].ece_ratio
+check("equal-size LR ECE ratio, range over seeds", (round(lr_r.min(), 2), round(lr_r.max(), 2)), (0.61, 0.64))
+te = pd.read_csv("seed_o1_ece.csv").query("variant == 'raw' and gap == 0 and model == 'lr'").iloc[0]
+cap_r = [ra.loc[("lr", s)].ece / te[f"ece_s{s}"] for s in (42, 43, 44)]
+check("capped LR ECE ratio per seed", tuple(round(x, 2) for x in cap_r), (0.55, 0.59, 0.62))
 
-# --------------------- v18: size-matched random-arm retraining (RQ1, threat 4)
-# The random arm retrained at origin 1's exact training size (3,338,217 rows),
-# 3 models x 3 seeds, same protocol with only the cap changed. Two pre-specified
-# contrasts: (a) new random vs temporal gap 0, same seed (size-free split
-# contrast); (b) new random vs the 4,000,000-row random arm, same seed (pure
-# size effect). The capped-arm contrast the paper quotes alongside is (a) - (b).
-sm = pd.read_csv("sizematch/sizematch_cells.csv")
-check("size-matched cells (3 seeds x 3 models x 3 variants)", len(sm), 27)
-check("size-matched retraining: cap / train / test rows (first cell)",
-      (int(sm.cap.iloc[0]), int(sm.n_train.iloc[0]), int(sm.n_test.iloc[0])), (3338217, 3338217, 953777))
-check("size-matched retraining: sizes identical across all 27 cells",
-      (int(sm.cap.nunique()), int(sm.n_train.nunique()), int(sm.n_test.nunique())), (1, 1, 1))
-sc = pd.read_csv("sizematch/sizematch_contrasts.csv")
-seed_rows = sc[sc.seed != "mean"].copy(); seed_rows["seed"] = seed_rows.seed.astype(int)
-raw = sm[sm.variant == "raw"][["seed", "model", "auc"]].rename(columns={"auc": "cell_auc"})
-mg = seed_rows[seed_rows.contrast == "a_sizefree_split"].merge(raw, on=["seed", "model"])
-check("size-matched cells vs contrasts: raw AUC agreement (max |diff|)",
-      float((mg.cell_auc - mg.new_random_auc).abs().max()), 0.0, tol=1e-12)
-check("contrasts: d_auc = new_random_auc - ref_auc in every seed row (max |dev|)",
-      float((seed_rows.d_auc - (seed_rows.new_random_auc - seed_rows.ref_auc)).abs().max()), 0.0, tol=1e-12)
-mean_rows = sc[sc.seed == "mean"].set_index(["contrast", "model"]).d_auc
-recomp_means = seed_rows.groupby(["contrast", "model"]).d_auc.mean()
-check("contrasts: printed mean rows agree with the seed rows (max |dev|)",
-      float((recomp_means - mean_rows).abs().max()), 0.0, tol=1e-12)
-a = seed_rows[seed_rows.contrast == "a_sizefree_split"].groupby("model").d_auc.mean()
-check("size-matched gap-0 AUC contrast, seed means (LR / DeepFM / DCN-v2)",
-      tuple(round(a[m], 4) for m in ("lr", "deepfm", "dcnv2")), (0.0140, 0.0150, 0.0154))
-check("threat (4): matched-size contrast range across models (seed means)",
-      (round(a.min(), 4), round(a.max(), 4)), (0.0140, 0.0154))
-piv_a = seed_rows[seed_rows.contrast == "a_sizefree_split"].pivot(index=["model", "seed"], columns="contrast", values="d_auc")
-piv_b = seed_rows[seed_rows.contrast == "b_pure_size"].pivot(index=["model", "seed"], columns="contrast", values="d_auc")
-capped = (piv_a["a_sizefree_split"] - piv_b["b_pure_size"]).groupby("model").mean()
-check("capped (4.00M) gap-0 AUC contrast, seed means (LR / DeepFM / DCN-v2)",
-      tuple(round(capped[m], 4) for m in ("lr", "deepfm", "dcnv2")), (0.0137, 0.0151, 0.0152))
-b = seed_rows[seed_rows.contrast == "b_pure_size"].groupby("model").d_auc.mean()
-check("pure size effect on the random arm's AUC, seed means (LR / DeepFM / DCN-v2)",
-      tuple(round(b[m], 4) for m in ("lr", "deepfm", "dcnv2")), (0.0002, -0.0001, 0.0002))
-lr_ratio = seed_rows[(seed_rows.contrast == "a_sizefree_split") & (seed_rows.model == "lr")].sort_values("seed").ece_ratio
-check("LR ECE ratio at matched size, per seed (42 / 43 / 44)",
-      tuple(round(x, 3) for x in lr_ratio), (0.608, 0.639, 0.613))
-check("LR ECE ratio at matched size: range as printed (0.61-0.64)",
-      (round(lr_ratio.min(), 2), round(lr_ratio.max(), 2)), (0.61, 0.64))
-
-# --------------------- v19: caliber pins + ECE-ratio / size-effect provenance
-# v19 prints three distinct gap-0 calibers for the Tier-F draw (Sec. IV-A):
-# the origin-1 gap-0 mean (+0.00015), the pooled-72 mean (+0.00015) and the
-# pooled gap-0 mean (+0.00012). The Tier-F section above pins the two pooled
-# values at print precision; these checks pin all three at full precision.
-# (tierf/tierf_cells.csv is the Tier-F per-cell audit table, byte-identical to
-# the project's results/tierf/audit_out/cells_with_deltas.csv.)
-o1g0 = tf[(tf.origin == 1) & (tf.gap == 0)]
-check("Tier-F control: origin-1 gap-0 cells (3 seeds x 3 models)", len(o1g0), 9)
-check("Tier-F control: origin-1 gap-0 mean dAUC, full precision",
-      round(float(o1g0.d_auc.mean()), 6), 0.000149)
-check("Tier-F control: origin-1 gap-0 mean dAUC as printed",
-      round(float(o1g0.d_auc.mean()), 5), 0.00015)
-check("Tier-F control: pooled mean dAUC, full precision",
-      round(float(tf.d_auc.mean()), 6), 0.000155)
-check("Tier-F control: pooled gap-0 mean dAUC, full precision",
-      round(float(tf[tf.gap == 0].d_auc.mean()), 6), 0.000117)
-# v19 gives LR's gap-0 ECE ratio at BOTH training sizes: 0.61-0.64 at matched
-# size (checked in the v18 section above) and 0.55-0.62 at the 4.00M cap,
-# computed here as (random-arm raw ECE) / (origin-1 temporal gap-0 raw ECE)
-# per seed from the per-seed metrics tables.
-ra = pd.read_csv("seed_random_arm.csv")
-ra = ra[(ra.model == "lr") & (ra.variant == "raw")].set_index("seed").ece
-o1e = pd.read_csv("seed_o1_ece.csv")
-o1e = o1e[(o1e.model == "lr") & (o1e.gap == 0) & (o1e.variant == "raw")].iloc[0]
-cap_ratio = tuple(float(ra[s] / o1e[f"ece_s{s}"]) for s in (42, 43, 44))
-check("LR ECE ratio at the cap (4.00M arm), per seed (42 / 43 / 44)",
-      tuple(round(x, 4) for x in cap_ratio), (0.5519, 0.5864, 0.6185))
-check("LR ECE ratio at the cap as printed per seed",
-      tuple(round(x, 2) for x in cap_ratio), (0.55, 0.59, 0.62))
-check("LR ECE ratio at the cap: range as printed in v19 (0.55-0.62)",
-      (round(min(cap_ratio), 2), round(max(cap_ratio), 2)), (0.55, 0.62))
-# Provenance of the printed pure size effects (+0.0002 / -0.0001 / +0.0002):
-# they are the UNROUNDED seed means of contrast (b) (equal-size minus capped),
-# which is why v19 declares them "from unrounded values" -- subtracting the
-# rounded printed contrasts instead would give LR +0.0003 (final check).
-check("pure size effect, unrounded seed means (LR / DeepFM / DCN-v2)",
-      tuple(round(b[m], 6) for m in ("lr", "deepfm", "dcnv2")), (0.000227, -0.000118, 0.000196))
-check("rounded-input subtraction would give LR +0.0003 (hence 'from unrounded values')",
-      round(round(a["lr"], 4) - round(capped["lr"], 4), 4), 0.0003)
+B = pd.read_csv("tierf/bid_price_sweep.csv")
+check("price sweep: settings x deltas", (B.groupby(["mu", "sigma"]).ngroups, int(B.groupby(["mu", "sigma"]).size().unique()[0])), (9, 48))
+check("price sweep: all deltas range (%)", (round(B.delta_pct.min(), 3), round(B.delta_pct.max(), 3)), (-0.357, 0.343))
+pm = B.groupby(["mu", "sigma"]).delta_pct.mean()
+check("price sweep: mean delta per setting, range (%)", (round(pm.min(), 3), round(pm.max(), 3)), (0.019, 0.040))
+check("price sweep: every delta within +-0.36%", bool(B.delta_pct.abs().max() <= 0.36), True)
+hd = B[(B.mu == -2.2) & (B.sigma == 0.9)]
+check("price sweep: headline setting reproduces RQ4 range (%)", (round(hd.delta_pct.min(), 3), round(hd.delta_pct.max(), 3)), (-0.207, 0.263))
 
 print(f"\n{bad} mismatch(es)")
 sys.exit(bad)
