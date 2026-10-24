@@ -1,4 +1,4 @@
-# Audit supplement — "How Much Fresh Data Should CTR Recalibration Use?" (BigData workshop submission, v22)
+# Audit supplement — "How Much Fresh Data Should CTR Recalibration Use?" (BigData workshop submission, v23)
 
 Cell-level, **unrounded** data behind the paper's tables and headline statistics, so that
 any number in the PDF can be recomputed exactly. All files are consolidated from the
@@ -51,9 +51,9 @@ table (Table V) and the size-matched control. Narrative analyses are in the repo
 | `mechanism_o1_validation.json`, `mechanism_o2_validation.json` | Validation of the mechanism pipeline against the independent sweep runs (full-12 h ΔECE agrees to ~1e-16, 1 h at gaps 1–3 to ~1e-13), the elementwise 1 h ⊂ 12 h subset check, and the subsample seed registry. | Verbatim copies of `mechanism_slice/mechanism_o{1,2}_validation.json` | Internal validity of the mechanism experiment |
 
 
-## One-command reproduction (v22)
+## One-command reproduction (v23)
 
-`python3 reproduce_paper_numbers.py` (pandas, scipy) recomputes 114 quantitative claims of the paper, including the Tier-E controls (size-matched control at three seeds, aged-window control, and the hour-composition statements of §IV-D) and the Tier-F additions (matched-sampling control, equal-size retraining of the random arm, price sweep), from the files above, prints each next to the value printed in the paper, and exits with the number of mismatches (0 for v22). It also writes two derived tables the paper summarises:
+`python3 reproduce_paper_numbers.py` (pandas, scipy) recomputes 115 quantitative claims of the paper, including the Tier-E controls (size-matched control at three seeds, aged-window control, and the hour-composition statements of §IV-D) and the Tier-F additions (matched-sampling control, equal-size retraining of the random arm, price sweep), from the files above, prints each next to the value printed in the paper, and exits with the number of mismatches (0 for v23). It also writes two derived tables the paper summarises:
 
 | File | Contents |
 |---|---|

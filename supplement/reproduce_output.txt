@@ -99,6 +99,7 @@ seed origin
 [OK] weekday-absent rule, pooled: recomputed 0.333 | paper 0.333
 [OK] binned oracle median per 1,000 impressions: recomputed -0.37 | paper -0.37
 [OK] isotonic oracle gain range per 1,000: recomputed (np.float64(0.049), np.float64(0.409)) | paper (0.049, 0.409)
+[OK] profit-vs-dECE slope ratio, origin 2 / origin 1: recomputed 2.5 | paper 2.5
 [OK] matched-sampling: paired cells: recomputed 72 | paper 72
 [OK] matched-sampling: training rows = temporal arm (o1, o2): recomputed (3338217, 3948439) | paper (3338217, 3948439)
 [OK] matched-sampling: temporal reference AUC equals seed-42 grid (o1): recomputed True | paper True

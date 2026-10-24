@@ -239,6 +239,14 @@ check("binned oracle median per 1,000 impressions", round((bo.calib_oracle_minus
 io = pd.read_csv("rq4_isotonic_oracle.csv")
 check("isotonic oracle gain range per 1,000", (round(io.delta_per_1000.min(), 3), round(io.delta_per_1000.max(), 3)), (0.049, 0.409))
 
+# RQ4: why the pooled profit-ECE correlation is weaker than per origin (v23)
+from scipy.stats import linregress
+_b = pd.read_csv("delta_ece_bootstrap.csv"); _q = pd.read_csv("rq4_bootstrap.csv"); _q["variant"] = _q.comparison.str.replace("-raw", "", regex=False)
+_m = _b.merge(_q[["origin", "model", "gap", "variant", "delta_profit"]], on=["origin", "model", "gap", "variant"]).merge(pd.read_csv("rq4_binned_oracle.csv")[["origin", "model", "gap", "profit_raw"]], on=["origin", "model", "gap"])
+_m["p"] = _m.delta_profit / _m.profit_raw * 100
+_sl = {o: linregress(_m[_m.origin == o].delta_ece, _m[_m.origin == o].p).slope for o in (1, 2)}
+check("profit-vs-dECE slope ratio, origin 2 / origin 1", round(_sl[2] / _sl[1], 1), 2.5)
+
 # ---------------------------------------- Tier F (v18+): RQ1 controls, price sweep
 M = pd.read_csv("tierf/matched_sampling_cells.csv")
 check("matched-sampling: paired cells", len(M), 72)

@@ -56,7 +56,7 @@ a time.
   (pooled −0.69; origin 1 −0.77; origin 2 −0.78) from the supplement CSVs.
   The Tier-D tables (three-seed slice-length sweep, mechanism control) are
   listed in the Tier-D section of `supplement/README.md`. `supplement/reproduce_paper_numbers.py`
-  recomputes every quantitative claim checked by the audit (114 checks)
+  recomputes every quantitative claim checked by the audit (115 checks)
   from these files.
 - `requirements.txt` — the pinned environment (see below).
 - `docs/` — the original project README (`PROJECT_README.md`, design and
